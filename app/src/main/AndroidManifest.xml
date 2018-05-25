@@ -20,8 +20,6 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity android:name=".Activities.ServiceActivityFragment" />
         <activity android:name=".Activities.HomeActivityFragment" />
-        <activity android:name=".Activities.CompanyRegisterActivity" />
-        <activity android:name=".Activities.PostJobFragementActivity" />
         <activity android:name=".Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,7 +32,8 @@
         <activity
             android:name=".Activities.Main2ActivityTab"
             android:label="@string/title_activity_main2_tab"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            >
 
 
         </activity>

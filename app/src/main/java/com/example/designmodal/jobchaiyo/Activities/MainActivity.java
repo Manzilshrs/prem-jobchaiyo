@@ -55,6 +55,7 @@ public static PrefConfig prefConfig;
     public void performLogin(String name)
     {
         prefConfig.writeNmae(name);
+
         //getFragmentManager().beginTransaction().replace(R.id.fragment_container,new WelcomePostJob()).commit();
 
         Intent intent=new Intent(MainActivity.this,Main2ActivityTab.class);

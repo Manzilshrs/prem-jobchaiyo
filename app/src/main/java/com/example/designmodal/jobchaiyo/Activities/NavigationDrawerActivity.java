@@ -15,8 +15,6 @@ import android.view.MenuItem;
 
 import com.example.designmodal.jobchaiyo.Fragments.HomeTopFragment;
 import com.example.designmodal.jobchaiyo.Fragments.LoginPostJob;
-import com.example.designmodal.jobchaiyo.Fragments.WelcomePostJob;
-import com.example.designmodal.jobchaiyo.Fragments.PostJobLoginFragment;
 import com.example.designmodal.jobchaiyo.Fragments.ServiceFragment;
 import com.example.designmodal.jobchaiyo.R;
 

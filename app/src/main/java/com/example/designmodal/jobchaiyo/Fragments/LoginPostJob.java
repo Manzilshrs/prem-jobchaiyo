@@ -6,12 +6,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.design.widget.TextInputLayout;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.designmodal.jobchaiyo.Activities.Main2ActivityTab;
 import com.example.designmodal.jobchaiyo.Activities.MainActivity;
@@ -24,12 +30,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.example.designmodal.jobchaiyo.Activities.MainActivity.prefConfig;
+
 /**
  * A simple {@link Fragment} subclass.
  */
 public class LoginPostJob extends Fragment {
     TextView Register;
-    EditText Email,Password;
+    EditText Email, Password;
     Button Login;
     private ApiInterface apiInterface;
     OnLoginFormActivityListener loginFormActivityListener;
@@ -54,6 +62,8 @@ public interface OnLoginFormActivityListener
         Email=view.findViewById(R.id.Email);
         Password=view.findViewById(R.id.Password);
         Login=view.findViewById(R.id.Login);
+
+
         apiInterface=  ApiClient.getApiClient().create(ApiInterface.class);
 
         Login.setOnClickListener(new View.OnClickListener() {
@@ -75,17 +85,19 @@ public interface OnLoginFormActivityListener
 
         return view;
     }
-//
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        Activity activity=(Activity) context;
-//        loginFormActivityListener=(OnLoginFormActivityListener) activity;
-//
-//    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Activity activity=(Activity) context;
+        loginFormActivityListener=(OnLoginFormActivityListener) activity;
+
+   }
+
 
     private void performLogin(){
-        String email=Email.getText().toString();
+        final String email=Email.getText().toString();
         String password=Password.getText().toString();
         Call<User> call =apiInterface.performUserLogin(email,password);
 
@@ -95,14 +107,39 @@ public interface OnLoginFormActivityListener
             public void onResponse(Call<User> call, Response<User> response) {
                 if (response.body().getResponse().equals("ok"))
                 {
-                    MainActivity.prefConfig.writeLoginStatus(true);
-                   // loginFormActivityListener.performLogin(response.body().getName());
+                    prefConfig.writeLoginStatus(true);
+                  // loginFormActivityListener.performLogin(response.body().getName());
+                    String name=response.body().getName();
+                    String address=response.body().getCompanyAddress();
+                    String website=response.body().getWebsite();
+                    String person=response.body().getContactPerson();
+                    String office=response.body().getOfficeNo();
+                    String mobile=response.body().getMobileNo();
+                    String emaill=response.body().getEmail();
+                    String optemail=response.body().getOptEmail();
+                    String username=response.body().getUsername();
+                    String passwordd=response.body().getPassword();
+                    String id=response.body().getId();
+                    prefConfig.writeid(id);
+                    prefConfig.writeCompanyAddress(address);
+                    prefConfig.writeCompanyName(name);
+                    prefConfig.writeWebsite(website);
+                    prefConfig.writeContactPerson(person);
+                    prefConfig.writeOfficeNo(office);
+                    prefConfig.writeMobile(mobile);
+                    prefConfig.writeEmail(emaill);
+                    prefConfig.writeOptEmail(optemail);
+                    prefConfig.writeUsername(username);
+                    prefConfig.writePassword(passwordd);
+             //       Toast.makeText(getContext(), "Address::" +address, Toast.LENGTH_SHORT).show();
+               //     Toast.makeText(getContext(), "id::" +id, Toast.LENGTH_SHORT).show();
+
                     Intent intent=new Intent(getContext(), Main2ActivityTab.class);
                     startActivity(intent);
                 }
                 else if (response.body().getResponse().equals("failed"))
                 {
-                    MainActivity.prefConfig.displayToast("Login failed...Please try again...");
+                    prefConfig.displayToast("Login failed...Please try again...");
                 }
             }
 

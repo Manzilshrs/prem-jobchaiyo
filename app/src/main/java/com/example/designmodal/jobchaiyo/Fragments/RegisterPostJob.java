@@ -1,15 +1,14 @@
 package com.example.designmodal.jobchaiyo.Fragments;
 
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.provider.MediaStore;
-import android.service.quicksettings.Tile;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.view.LayoutInflater;
@@ -28,8 +27,12 @@ import com.example.designmodal.jobchaiyo.DataManager.ApiClient;
 import com.example.designmodal.jobchaiyo.DataManager.ApiInterface;
 import com.example.designmodal.jobchaiyo.DataManager.Service;
 import com.example.designmodal.jobchaiyo.Model.ImageClass;
+import com.example.designmodal.jobchaiyo.Model.ListofJobEducation;
 import com.example.designmodal.jobchaiyo.Model.ListofJobCategory;
+import com.example.designmodal.jobchaiyo.Model.ListofJobLocation;
 import com.example.designmodal.jobchaiyo.Model.ListofJobOwnership;
+import com.example.designmodal.jobchaiyo.Model.ListofJobTypes;
+import com.example.designmodal.jobchaiyo.Model.ListofPayment;
 import com.example.designmodal.jobchaiyo.Model.User;
 import com.example.designmodal.jobchaiyo.R;
 
@@ -37,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import fr.ganfra.materialspinner.MaterialSpinner;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -46,25 +50,25 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class RegisterPostJob extends Fragment implements Service.GetJobCallback, View.OnClickListener {
+public class RegisterPostJob extends Fragment implements Service.GetJobCallback {
     private EditText et_CName, et_CAddress, et_Website, et_ContactPerson, et_OfficeContact, et_Mobile, et_Email, et_ReEmail, et_OptEmail,
             et_UserName, et_Password, et_RePassword, title;
     private ImageView img;
     private static final int IMG_REQUEST = 111;
     private Bitmap bitmap;
-    private Spinner jobCategorySpinner, jobOwnershipSpinner;
+    MaterialSpinner jobCategorySpinner,jobOwnershipSpinner;
     private String CName, CAddress, Website, ContactPerson, OfficeContact, Mobile, Email, ReEmail, OptEmail, tPassword, tRepassword,
             UserName, Password, tEmail, tReEmail, RePassword;
     Integer jobOwnership;
     Integer jobCategory;
     Button signin, cancel, choosebtn;
-    ImageView imageView;
-    private static final int PICK_IMAGE = 100;
+//    ImageView imageView;
+ //   private static final int PICK_IMAGE = 100;
 
     Service service;
 
-    private ApiInterface apiInterface;
     Context context;
+    private ApiInterface apiInterface;
 
     public RegisterPostJob() {
         // Required empty public constructor
@@ -88,26 +92,36 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
         et_UserName = view.findViewById(R.id.UserName);
         et_Password = view.findViewById(R.id.Password);
         et_RePassword = view.findViewById(R.id.RePassword);
-        imageView = view.findViewById(R.id.image);
+//        imageView = view.findViewById(R.id.image);
         signin = view.findViewById(R.id.signin);
         cancel = view.findViewById(R.id.cancel);
         title = view.findViewById(R.id.title);
-        choosebtn = view.findViewById(R.id.chooseimg);
-        img = view.findViewById(R.id.cimage);
+        jobCategorySpinner=(MaterialSpinner)view.findViewById(R.id.job_category) ;
+//        choosebtn = view.findViewById(R.id.chooseimg);
+//        img = view.findViewById(R.id.cimage);
 
-        jobCategorySpinner = view.findViewById(R.id.job_category);
-        jobOwnershipSpinner = view.findViewById(R.id.job_ownership);
+        //jobCategorySpinner = view.findViewById(R.id.job_category);
+        jobOwnershipSpinner = (MaterialSpinner) view.findViewById(R.id.job_ownership);
         apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         service = new Service();
         service.getJobCategoryList(this);
         service.getJobOwnerShipList(this);
+
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getFragmentManager().beginTransaction().add(R.id.fragment_container,new LoginPostJob()).commit();
+            }
+        });
+
         // jobCategorySpinner.setPrompt("Job Category");
 
         jobCategory = 0;
         jobOwnership = 0;
 
-        choosebtn.setOnClickListener(this);
-        context=getContext();
+//        choosebtn.setOnClickListener(this);
+     context=getContext();
 
         signin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,7 +140,13 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
         jobCategorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                jobCategory = jobCategorySpinner.getSelectedItemPosition() + 1;
+               jobCategory=-1;
+                //name jobcategory kaam job ownership ko ho
+                jobCategory= jobCategorySpinner.getSelectedItemPosition() ;
+                if(jobCategory==0)
+                {
+                    jobCategorySpinner.setError("Please Select your Ownership.....");
+                }
             }
 
             @Override
@@ -138,7 +158,12 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
         jobOwnershipSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                jobOwnership = jobOwnershipSpinner.getSelectedItemPosition() + 1;
+                jobOwnership = jobOwnershipSpinner.getSelectedItemPosition();
+                //name ownership kaam job category ko ho
+                if (jobOwnership==0)
+                {
+                    jobOwnershipSpinner.setError("Please Select your Job Category");
+                }
             }
 
             @Override
@@ -149,6 +174,7 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
     }
 
     public void performRegisteration() {
+//        uploadImage();
         String name = et_CName.getText().toString().trim();
         String address = et_CAddress.getText().toString().trim();
         String website = et_Website.getText().toString().trim();
@@ -161,13 +187,13 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
         String username = et_UserName.getText().toString().trim();
         String password = et_Password.getText().toString().trim();
         String repassword = et_RePassword.getText().toString().trim();
-        String tit=title.getText().toString().trim();
-        String Image=imageToString();
+//        String tit=title.getText().toString().trim();
+//        String Image=imageToString();
 
 
         Call<User> call = apiInterface.performRegistration
                 (name, address, website, person, office, mobile, email, optemail, username, password, jobCategory, jobOwnership);
-        Toast.makeText(getContext(), "registration function", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getContext(), "registration function", Toast.LENGTH_SHORT).show();
 
         call.enqueue(new Callback<User>() {
             @Override
@@ -175,26 +201,29 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
 
 
                 if (response.body().getResponse().equals("ok")) {
-                    MainActivity.prefConfig.displayToast("Registration Success.....");
-                    uploadImage();
-                    Toast.makeText(getContext(), "If condition ", Toast.LENGTH_SHORT).show();
+                    MainActivity.prefConfig.displayToast("Registration Success.....Use Email and Password for Login");
+                    getFragmentManager().beginTransaction().replace(R.id.fragment_container,new LoginPostJob()).commit();
+
+
+//                    Toast.makeText(getContext(), "If condition ", Toast.LENGTH_SHORT).show();
                 } else if (response.body().getResponse().equals("exist")) {
 
-                    MainActivity.prefConfig.displayToast("User already exist...");
-                    Toast.makeText(getContext(), "Else If exist  condition ", Toast.LENGTH_SHORT).show();
-
+                    MainActivity.prefConfig.displayToast("User already exist...Use your Email and Password for Login");
+                    getFragmentManager().beginTransaction().replace(R.id.fragment_container,new LoginPostJob()).commit();
+//                    Toast.makeText(getContext(), "Else If exist  condition ", Toast.LENGTH_SHORT).show();
+//
 
                 } else if (response.body().getResponse().equals("error")) {
 
-                    MainActivity.prefConfig.displayToast("Something went wrong...");
-                    Toast.makeText(getContext(), "else If error condition ", Toast.LENGTH_SHORT).show();
+                    MainActivity.prefConfig.displayToast("Something went wrong...Please Try Again");
+//                    Toast.makeText(getContext(), "else If error condition ", Toast.LENGTH_SHORT).show();
 
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Toast.makeText(getContext(), "on failure condition ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "on failure condition ...Check your Internet Connection", Toast.LENGTH_SHORT).show();
             }
 
         });
@@ -216,87 +245,108 @@ public class RegisterPostJob extends Fragment implements Service.GetJobCallback,
 
     @Override
     public void onSuccessJobOwnership(List<ListofJobOwnership> listofJobOwnerhips) {
-        jobCategorySpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.
-                layout.simple_spinner_dropdown_item, listofJobOwnerhips));
+        jobCategorySpinner.setAdapter(new ArrayAdapter<>(getActivity(), R.
+                layout.spinner_layout, R.id.textView ,listofJobOwnerhips));
 
 
     }
 
     @Override
     public void onSuccessJobCategory(List<ListofJobCategory> listofJobCategory) {
-        jobOwnershipSpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.
-                layout.simple_spinner_dropdown_item, listofJobCategory));
+        jobOwnershipSpinner.setAdapter(new ArrayAdapter<>(getActivity(), R.
+                layout.spinner_layout,R.id.textView, listofJobCategory));
 
     }
+
+    @Override
+    public void onSuccesslistEducation(List<ListofJobEducation> listofEducations) {
+
+    }
+
+    @Override
+    public void onSuccesslistJobtypes(List<ListofJobTypes> listofJobTypes) {
+
+    }
+
+    @Override
+    public void onSuccesslistJobLocation(List<ListofJobLocation> listofJobLocation) {
+
+    }
+
+    @Override
+    public void onSuccesslistPayment(List<ListofPayment> listofPayment) {
+
+    }
+
 
     @Override
     public void onError(String e) {
         Toast.makeText(getActivity(), e, Toast.LENGTH_LONG).show();
     }
 
-    @Override
-    public void onClick(View view) {
-        selectImage();
+//    @Override
+//    public void onClick(View view) {
+//        selectImage();
 
     }
+//
+//private void uploadImage()
+//{
+//    final String Image= imageToString();
+//    String Title= title.getText().toString();
+//    ApiInterface apiInterface=ApiClient.getApiClient().create(ApiInterface.class);
+//    Call<ImageClass> call=apiInterface.uploadImage(Title,Image);
+//
+//    call.enqueue(new Callback<ImageClass>() {
+//        @Override
+//        public void onResponse(Call<ImageClass> call, Response<ImageClass> response) {
+//            ImageClass imageClass=response.body();
+//          Toast.makeText(getContext(), "Server Response:"+imageClass.getResponse(), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(), "uoload Image function", Toast.LENGTH_SHORT).show();
+//            img.setVisibility(View.GONE);
+//            title.setVisibility(View.GONE);
+//            title.setText("");
+//        }
+//
+//        @Override
+//        public void onFailure(Call<ImageClass> call, Throwable t) {
+//
+//        }
+//    });
+//}
+//
+//    public void selectImage() {
+//        Intent intent = new Intent();
+//        intent.setType("image/*");
+//        intent.setAction(Intent.ACTION_GET_CONTENT);
+//        startActivityForResult(intent, IMG_REQUEST);
+//    }
+//
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == IMG_REQUEST && resultCode == RESULT_OK && data != null) {
+//            Uri path = data.getData();
+//            try {
+//                bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), path);
+//                img.setImageBitmap(bitmap);
+//                img.setVisibility(View.VISIBLE);
+//                title.setVisibility(View.VISIBLE);
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//
+//        }
+//    }
+//
+//    private String imageToString()
+//    {
+//        ByteArrayOutputStream byteArrayOutputStream= new ByteArrayOutputStream();
+//        bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
+//        byte[] imgByte= byteArrayOutputStream.toByteArray();
+//        return Base64.encodeToString(imgByte,Base64.DEFAULT);
+//    }
 
-private void uploadImage()
-{
-    final String Image= imageToString();
-    String Title= title.getText().toString();
-    ApiInterface apiInterface=ApiClient.getApiClient().create(ApiInterface.class);
-    Call<ImageClass> call=apiInterface.uploadImage(Title,Image);
-
-    call.enqueue(new Callback<ImageClass>() {
-        @Override
-        public void onResponse(Call<ImageClass> call, Response<ImageClass> response) {
-            ImageClass imageClass=response.body();
-          Toast.makeText(getContext(), "Server Response:"+imageClass.getResponse(), Toast.LENGTH_SHORT).show();
-            Toast.makeText(getContext(), "uoload Image function", Toast.LENGTH_SHORT).show();
-            img.setVisibility(View.GONE);
-            title.setVisibility(View.GONE);
-            title.setText("");
-        }
-
-        @Override
-        public void onFailure(Call<ImageClass> call, Throwable t) {
-
-        }
-    });
-}
-
-    public void selectImage() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, IMG_REQUEST);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == IMG_REQUEST && resultCode == RESULT_OK && data != null) {
-            Uri path = data.getData();
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), path);
-                img.setImageBitmap(bitmap);
-                img.setVisibility(View.VISIBLE);
-                title.setVisibility(View.VISIBLE);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-        }
-    }
-
-    private String imageToString()
-    {
-        ByteArrayOutputStream byteArrayOutputStream= new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
-        byte[] imgByte= byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(imgByte,Base64.DEFAULT);
-    }
-}
 
